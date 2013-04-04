@@ -1,5 +1,4 @@
 import org.json4s.JsonAST._
-import org.json4s._
 
 /**
  Implementation of JSON Pointer. RFC-6901
@@ -8,19 +7,16 @@ import org.json4s._
 object Pointer {
   import Ref._
   
-  def select(selector: String, doc: JValue): JValue = {
-    val parts = buildSelected(selector)
-    find(parts, doc)
-  }
+  def select(selector: String, doc: JValue): JValue = select(toRefs(selector), doc)
   
-  private def buildSelected(selected: String): List[Ref] = {
+  def toRefs(selected: String): List[Ref] = {
     if (selected.trim.isEmpty) Nil
     else {
-      val parts = ( if (selected.startsWith("/")) selected.substring(1) else selected).split("/").toList.map(_.unescaped)
+      val parts = ( if (selected.startsWith("/")) selected.substring(1) else selected).split("/").toList.map(unescape)
       def req(parts: List[String], acc:List[Ref]): List[Ref] = {
         parts match {
           case Nil => acc
-          case IsInt(x) :: xs => req(xs, acc ++ List(ArrayRef(x)))
+          case AsInt(x) :: xs => req(xs, acc ++ List(ArrayRef(x)))
           case x :: xs => req(xs, acc ++ List(PropertyRef(x)))
         }      
       }
@@ -28,7 +24,7 @@ object Pointer {
     }
   }
   
-  private def find(parts: List[Ref], doc: JValue): JValue = {
+  private def select(parts: List[Ref], doc: JValue): JValue = {
     def req(parts: List[Ref], in: JValue): JValue = {
       parts match {
         case Nil => in
@@ -45,16 +41,13 @@ object Pointer {
     req(parts, doc)
   }
   
-  implicit class Selectable(val str: String) extends AnyVal {
-    def unescaped = str.replace("~1", "/").replace("~0", "~")
-  }
-  
-  object IsInt {
-    import util.control.Exception.allCatch
-    def unapply(str: String): Option[Int] = allCatch.opt(str.toInt)
-  }
+  private def unescape(str: String): String = str.replace("~1", "/").replace("~0", "~")
 }
 
+object AsInt {
+  import util.control.Exception.allCatch
+  def unapply(str: String): Option[Int] = allCatch.opt(str.toInt)
+}
 
 sealed trait Ref
 
