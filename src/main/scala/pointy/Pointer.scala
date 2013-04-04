@@ -14,19 +14,19 @@ object Pointer {
     if (selected.trim.isEmpty) Nil
     else {
       val parts = ( if (selected.startsWith("/")) selected.substring(1) else selected).split("/").toList.map(unescape)
-      @tailrec def req(parts: List[String], acc:List[Ref]): List[Ref] = {
+      @tailrec def recur(parts: List[String], acc:List[Ref]): List[Ref] = {
         parts match {
           case Nil => acc
           case AsInt(x) :: xs => req(xs, acc ++ List(ArrayRef(x)))
           case x :: xs => req(xs, acc ++ List(PropertyRef(x)))
         }      
       }
-      req(parts, Nil)
+      recur(parts, Nil)
     }
   }
   
   private def select(parts: List[Ref], doc: JValue): JValue = {
-    @tailrec def req(parts: List[Ref], in: JValue): JValue = {
+    @tailrec def recur(parts: List[Ref], in: JValue): JValue = {
       parts match {
         case Nil => in
         case ArrayRef(x) :: xs => in match {
@@ -40,7 +40,7 @@ object Pointer {
         }
       }
     }
-    req(parts, doc)
+    recur(parts, doc)
   }
   
   private def unescape(str: String): String = str.replace("~1", "/").replace("~0", "~")
