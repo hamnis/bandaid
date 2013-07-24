@@ -1,3 +1,5 @@
+package pointy
+
 import org.specs2.mutable._
 import org.json4s.native.JsonMethods._
 import org.json4s._
@@ -19,26 +21,35 @@ class NestedObjectPointerSpec extends Specification {
       }""")
   
   "A pointer" should {
+    val pointer = Pointer(lotteryJson)
     "select the whole document" in {
-      Pointer.select("", lotteryJson) must beEqualTo(lotteryJson)
+      pointer.select("") must beEqualTo(lotteryJson)
     }
     "select \"lotto\" object property" in {
-      Pointer.select("/lotto", lotteryJson) must beEqualTo(lotteryJson \ "lotto")
+      pointer.select("/lotto") must beEqualTo(lotteryJson \ "lotto")
     }
     "select \"lotto-id\" property in nested lotto object" in {
-      Pointer.select("/lotto/lotto-id", lotteryJson) must beEqualTo(JInt(5))
+      pointer.select("/lotto/lotto-id") must beEqualTo(JInt(5))
     }
     "select second number in \"winning-numbers\" property in nested lotto object" in {
-      Pointer.select("/lotto/winning-numbers/1", lotteryJson) must beEqualTo(JInt(45))
+      pointer.select("/lotto/winning-numbers/1") must beEqualTo(JInt(45))
     }
     "select first winner in \"winners\" property in nested lotto object" in {
-      Pointer.select("/lotto/winners/0", lotteryJson) must beEqualTo(parse("""{
+      pointer.select("/lotto/winners/0") must beEqualTo(parse("""{
             "winner-id":23,
             "numbers":[2,45,34,23,3,5]
           }"""))
     }
     "select none existing index 4 in \"winners\" property in nested lotto object" in {
-      Pointer.select("/lotto/winners/4", lotteryJson) must beEqualTo(JNothing)
+      pointer.select("/lotto/winners/4") must throwA[RuntimeException]
+    }
+    "update first winner in \"winners\" property in nested lotto object" in {
+      val expected = parse("""{
+            "winner-id": 300,
+            "numbers":[10,20,40,60,3,5,23]
+          }""")
+      val update = pointer.update("/lotto/winners/0", expected)
+      Pointer(update).select("/lotto/winners/0") must beEqualTo(expected)
     }
   }
 }
