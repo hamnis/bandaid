@@ -80,28 +80,25 @@ case class Pointer(document: JValue) extends JsonPointer {
     recur(selector.refs, document)
   }
 
-  def add(selector: Selector, replacement: JValue): JValue = {
+  def add(selector: Selector, toAdd: JValue): JValue = {
     def recur(s: List[Ref], in: JValue): JValue = {
       s match {
         case Nil => in
         case PropertyRef(name) :: xs => in match {
-          case JObject(fields) => {
-            val updated = fields map {
+          case JObject(fields) => JObject(
+            fields.map {
               case JField(`name`, v) => JField(name, if (xs == Nil) sys.error("Property with name %s already exists".format(name)) else recur(xs , v))
               case field => field
-            }
-            JObject(
-              updated :+ JField(name, replacement)
-            )
-          }
+            } :+ JField(name, toAdd)
+          )
           case other => other
         }
         case ArrayRef(i) :: xs => in match {
-          case a@JArray(arr) => if (xs == Nil) JArray(arr.patch(i + 1, List(replacement), 0)) else recur(xs, a)
+          case a@JArray(arr) => if (xs == Nil) JArray(arr.patch(i + 1, List(toAdd), 0)) else recur(xs, a)
           case other => other
         }
         case EndOfArray :: xs => in match {
-          case a@JArray(arr) => if (xs == Nil) JArray(arr :+ replacement) else recur(xs, a)
+          case a@JArray(arr) => if (xs == Nil) JArray(arr :+ toAdd) else recur(xs, a)
           case other => other
         }
       }
