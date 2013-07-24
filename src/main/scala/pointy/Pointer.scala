@@ -108,9 +108,8 @@ case class Pointer(document: JValue) extends JsonPointer {
 
 
 case class Selector(in: String) {
-  import Selector.Ref
 
-  private[pointy] val refs: List[Ref] = {
+  private[pointy] val refs: List[Selector.Ref] = {
     import Selector._
     if (in.trim.isEmpty) Nil
     else {
