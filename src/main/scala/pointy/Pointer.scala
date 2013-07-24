@@ -106,21 +106,32 @@ case class Pointer(document: JValue) extends JsonPointer {
   }
   
   private def select(parts: List[Ref], doc: JValue): JValue = {
-    @tailrec def recur(parts: List[Ref], in: JValue): JValue = {
+    import validation._
+    @tailrec def recur(parts: List[Ref], in: Validation[List[String], JValue]): Validation[List[String], JValue] = {
       parts match {
         case Nil => in
         case ArrayRef(x) :: xs => in match {
-          case JArray(list) => if (list.isDefinedAt(x)) recur(xs, list(x)) else sys.error("List index '%s' is out-of-bounds".format(x))
-          case _ => JNothing
+          case Success(JArray(list)) => if (list.isDefinedAt(x)) recur(xs, Success(list(x))) else in <<*>> Failure(List("List index '%s' is out-of-bounds".format(x)))
+          case Success(_) => Success(JNothing)
+          case f@Failure(_) => f
         }
-        case EndOfArray :: _ => sys.error("List index is out-of-bounds")
+        case EndOfArray :: _ => Failure(List("List index is out-of-bounds"))
         case PropertyRef(name) :: xs => in match {
-          case JObject(list) => recur(xs, list.find{case JField(n, v) => n == name}.map(_._2).getOrElse(sys.error("Field not found")))
-          case _ => JNothing
+          case Success(JObject(list)) => {
+            val failure: Validation[List[String], JValue] = in <<*>> Failure(List("Property with name '%s' was not found".format(name)))
+            val f: (JField) => Validation[List[String], JValue] = {case JField(_, v) => Success(v)}
+            val validation = list.find{case JField(n,v) => n == name}.map(f).getOrElse(failure)
+            recur(xs, validation)
+          }
+          case Success(_) => Success(JNothing)
+          case f@Failure(_) => f
         }
       }
     }
-    recur(parts, doc)
+    recur(parts, Success(doc)) match {
+      case Failure(list) => list.foreach(println); sys.error(list.mkString)
+      case Success(v) => v
+    }
   }
   
   private def unescape(str: String): String = str.replace("~1", "/").replace("~0", "~")
