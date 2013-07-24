@@ -21,9 +21,10 @@ import annotation.tailrec
 
 trait JsonPointer {
   def document: JValue
-  def select(selector: Selector): JValue
+  def select(selector: Selector): Option[JValue]
   def update(selector: Selector, update: JValue): JValue
   def add(selector: Selector, newValue: JValue): JValue
+  def remove(selector: Selector): JValue
 }
 
 /**
@@ -33,18 +34,21 @@ trait JsonPointer {
 case class Pointer(document: JValue) extends JsonPointer {
   import Selector._
 
-  def select(selector: Selector): JValue = {
-    @tailrec def recur(parts: List[Ref], in: JValue): JValue = {
+  def select(selector: Selector): Option[JValue] = {
+    @tailrec def recur(parts: List[Ref], in: JValue): Option[JValue] = {
       parts match {
-        case Nil => in
+        case Nil => in match {
+          case JNothing => None
+          case v => Some(v)
+        }
         case ArrayRef(x) :: xs => in match {
-          case JArray(list) => if (list.isDefinedAt(x)) recur(xs, list(x)) else sys.error("List index '%s' is out-of-bounds".format(x))
-          case _ => JNothing
+          case JArray(list) => recur(xs, if (list.isDefinedAt(x)) list(x) else JNothing)
+          case _ => None
         }
         case EndOfArray :: _ => sys.error("List index is out-of-bounds")
         case PropertyRef(name) :: xs => in match {
-          case JObject(list) => recur(xs, list.find{case JField(n, v) => n == name}.map(_._2).getOrElse(sys.error("Field not found")))
-          case _ => JNothing
+          case JObject(list) => recur(xs, list.find{case JField(n, v) => n == name}.map(_._2).getOrElse(JNothing))
+          case _ => None
         }
       }
     }
@@ -57,16 +61,16 @@ case class Pointer(document: JValue) extends JsonPointer {
         case Nil => in
         case PropertyRef(name) :: xs => in match {
           case JObject(fields) => JObject(
-             fields map {
+             fields.map {
                case JField(`name`, v) => JField(name, if (xs == Nil) replacement else recur(xs , v))
                case field => field
-             }
+             }.filterNot(_._1 == JNothing)
           )
           case other => other
         }
         case ArrayRef(i) :: xs => in match {
           case a@JArray(arr) => if (xs == Nil) {
-            if (arr.isDefinedAt(i)) JArray(arr.updated(i, replacement)) else sys.error("List index '%s' is out-of-bounds".format(i))
+            if (arr.isDefinedAt(i)) JArray(arr.updated(i, replacement).filterNot(_ == JNothing)) else sys.error("List index '%s' is out-of-bounds".format(i))
           } else recur(xs, a)
           case other => other
         }
@@ -104,6 +108,9 @@ case class Pointer(document: JValue) extends JsonPointer {
     }
     recur(selector.refs, document)
   }
+
+  def remove(selector: Selector): JValue = update(selector, JNothing)
+
 }
 
 case class Path(seg: List[String]) {
