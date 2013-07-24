@@ -106,6 +106,12 @@ case class Pointer(document: JValue) extends JsonPointer {
   }
 }
 
+case class Path(seg: List[String]) {
+  def toSelector = seg match {
+    case Nil => Selector("")
+    case xs => Selector(xs.mkString("/", "/", ""))
+  }
+}
 
 case class Selector(in: String) {
 
