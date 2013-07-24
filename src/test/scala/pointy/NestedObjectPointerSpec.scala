@@ -1,8 +1,8 @@
 package pointy
 
 import org.specs2.mutable._
-import org.json4s.native.JsonMethods._
 import org.json4s._
+import org.json4s.native.JsonMethods._
 
 class NestedObjectPointerSpec extends Specification {
   lazy val lotteryJson = parse("""
