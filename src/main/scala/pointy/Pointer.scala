@@ -44,8 +44,36 @@ case class Pointer(document: JValue) extends JsonPointer {
     recur(refs, document)
   }
 
-  case class Context(ref: Ref, parent: JValue)
-  
+  def add(selector: String, replacement: JValue): JValue = {
+    val refs = toRefs(selector)
+    def recur(s: List[Ref], in: JValue): JValue = {
+      s match {
+        case Nil => in
+        case PropertyRef(name) :: xs => in match {
+          case JObject(fields) => {
+            val updated = fields map {
+              case JField(`name`, v) => JField(name, if (xs == Nil) sys.error("Property with name %s already exists".format(name)) else recur(xs , v))
+              case field => field
+            }
+            JObject(
+              updated :+ JField(name, replacement)
+            )
+          }
+          case other => other
+        }
+        case ArrayRef(i) :: xs => in match {
+          case a@JArray(arr) => if (xs == Nil) JArray(arr.patch(i + 1, List(replacement), 0)) else recur(xs, a)
+          case other => other
+        }
+        case EndOfArray :: xs => in match {
+          case a@JArray(arr) => if (xs == Nil) JArray(arr :+ replacement) else recur(xs, a)
+          case other => other
+        }
+      }
+    }
+    recur(refs, document)
+  }
+
   def toRefs(selected: String): List[Ref] = {
     if (selected.trim.isEmpty) Nil
     else {

@@ -1,7 +1,7 @@
 package pointy
 
 import org.specs2.mutable._
-import org.json4s._
+import org.json4s.JsonAST._
 import org.json4s.native.JsonMethods._
 
 class PointerSpec extends Specification {
@@ -51,10 +51,23 @@ class PointerSpec extends Specification {
       val update = pointer.update("/foo", expected)
       Pointer(update).select("/foo") must beEqualTo(expected)
     }
+    "add \"xxx\" array property using /xxx" in {
+      val expected = JString("Hello")
+      val update = pointer.add("/xxx", expected)
+      Pointer(update).select("/xxx") must beEqualTo(expected)
+    }
+
     "replace first item in \"foo\" array property using /foo/0" in {
       val expected = JString("new")
       val update = pointer.update("/foo/0", expected)
       Pointer(update).select("/foo/0") must beEqualTo(expected)
+    }
+
+    "add to \"foo\" array property using /foo/2" in {
+      val expected = JString("new")
+      val update = pointer.add("/foo/2", expected)
+      Pointer(update).select("/foo/1") must beEqualTo(JString("baz"))
+      Pointer(update).select("/foo/2") must beEqualTo(expected)
     }
   }
 }
