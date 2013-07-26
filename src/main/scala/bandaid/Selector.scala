@@ -60,6 +60,8 @@ object Ref{
 
   private[bandaid] object AsInt {
     import util.control.Exception.allCatch
-    def unapply(str: String): Option[Int] = allCatch.opt(str.toInt)
+    def unapply(str: String): Option[Int] = {
+      "0|[1-9][0-9]*".r.findFirstIn(str).flatMap(s => allCatch.opt(s.toInt))
+    }
   }
 }
