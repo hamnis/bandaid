@@ -56,7 +56,7 @@ case class Pointer(document: JValue) {
              fields.map {
                case JField(`name`, v) => JField(name, if (xs == Nil) replacement else recur(xs , v))
                case field => field
-             }.filterNot(_._1 == JNothing)
+             }.filterNot(_._2 == JNothing)
           )
           case other => other
         }
@@ -77,20 +77,23 @@ case class Pointer(document: JValue) {
       s match {
         case Nil => in
         case PropertyRef(name) :: xs => in match {
-          case JObject(fields) => JObject(
-            fields.map {
+          case JObject(fields) => {
+            val updated = fields.map {
               case JField(`name`, v) => JField(name, if (xs == Nil) sys.error("Property with name %s already exists".format(name)) else recur(xs , v))
               case field => field
-            } :+ JField(name, toAdd)
-          )
+            }
+            JObject(
+              if (xs == Nil) updated :+ JField(name, toAdd) else updated
+            )
+          }
           case other => other
         }
         case ArrayRef(i) :: xs => in match {
-          case a@JArray(arr) => if (xs == Nil) JArray(arr.patch(i + 1, List(toAdd), 0)) else recur(xs, a)
+          case a@JArray(arr) => recur(xs, if (xs == Nil) JArray(arr.patch(i, List(toAdd), 0)) else a)
           case other => other
         }
         case EndOfArray :: xs => in match {
-          case a@JArray(arr) => if (xs == Nil) JArray(arr :+ toAdd) else recur(xs, a)
+          case a@JArray(arr) => recur(xs, if (xs == Nil) JArray(arr :+ toAdd) else a)
           case other => other
         }
       }
