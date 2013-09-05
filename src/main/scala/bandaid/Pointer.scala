@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pointy
+package bandaid
 
 import org.json4s.JsonAST._
 import annotation.tailrec

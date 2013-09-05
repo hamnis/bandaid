@@ -1,18 +1,16 @@
-name := "pointy"
+name := "bandaid"
 
 organization := "net.hamnaberg.json"
 
-scalaVersion := "2.10.1"
+scalaVersion := "2.10.2"
 
-crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.9.3", "2.10.1")
+crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.9.3", "2.10.2")
 
 libraryDependencies += "org.json4s" %% "json4s-ast" % "3.2.2"
 
 libraryDependencies += "org.json4s" %% "json4s-core" % "3.2.2"
 
 libraryDependencies += "org.json4s" %% "json4s-native" % "3.2.2" % "test"
-
-offline := true
 
 libraryDependencies <+= (scalaBinaryVersion) { sv =>
   sv.split("\\.").toList match {

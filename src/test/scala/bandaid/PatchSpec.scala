@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pointy
+package bandaid
 
 import org.json4s.native
 import org.specs2.mutable.Specification

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pointy
+package bandaid
 
 import scala.annotation.tailrec
 
@@ -58,7 +58,7 @@ object Ref{
   case object EndOfArray extends Ref
   case class PropertyRef(name:String) extends Ref
 
-  private[pointy] object AsInt {
+  private[bandaid] object AsInt {
     import util.control.Exception.allCatch
     def unapply(str: String): Option[Int] = allCatch.opt(str.toInt)
   }
