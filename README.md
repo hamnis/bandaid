@@ -8,10 +8,15 @@ Scala implementation of JSON Patch and JSON Pointer
 
 ```Scala
 import bandaid._
-import org.json4s._
-import org.json4s.native.JsonMethods._
 
-def patch(is: )
+val object = ... //some json structure
+
+val is = ... //get inputstream from somewhere...
+
+val patch = Patch.parse(is)
+
+val patched = patch(object)
+
 ```
 
 
