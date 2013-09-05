@@ -30,7 +30,7 @@ val patched = patch(object)
 	libraryDependencies += "net.hamnaberg.json" %% "bandaid" % "0.2.0-SNAPSHOT"
 
 
-# Implementation of JSON Pointer and JSON Patch
+# Building 
 
 This project uses submodules.
 
@@ -45,4 +45,6 @@ before you try to build.
 # References
 
 [RFC-6901](https://tools.ietf.org/html/rfc6901)
+
 [RFC-6902](https://tools.ietf.org/html/rfc6902)
+
