@@ -29,5 +29,11 @@ class PeopleSpec extends Specification {
       val patch = Patch(List(Op.Replace("/people/0/age", JInt(33))))
       Pointer(patch(json)).select("/people/0/age") should beSome(JInt(33))
     }
+
+    "patch object somewhere in array item" in {
+      val json = parser.parse(getClass.getResourceAsStream("/people.json"))
+      val patch = Patch(List(Op.Add("/people/0/links/something", JString("http://example.com"))))
+      Pointer(patch(json)).select("/people/0/links/something") should beSome(JString("http://example.com"))
+    }
   }
 }

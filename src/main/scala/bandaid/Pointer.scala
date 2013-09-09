@@ -89,7 +89,10 @@ case class Pointer(document: JValue) {
           case other => other
         }
         case ArrayRef(i) :: xs => in match {
-          case a@JArray(arr) => recur(xs, if (xs == Nil) JArray(arr.patch(i, List(toAdd), 0)) else a)
+          case a@JArray(arr) => {
+            val result = if (xs == Nil) arr.patch(i, List(toAdd), 0) else arr.updated(i, recur(xs, arr(i)))            
+            JArray(result)
+          }
           case other => other
         }
         case EndOfArray :: xs => in match {
