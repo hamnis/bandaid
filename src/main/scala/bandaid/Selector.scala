@@ -33,6 +33,7 @@ object Selector {
           parts match {
             case Nil => acc
             case AsInt(x) :: xs => recur(xs, acc ++ List(ArrayRef(x)))
+            case "-" :: xs => recur(xs, acc ++ List(EndOfArray))
             case x :: xs => recur(xs, acc ++ List(PropertyRef(x)))
           }
         }

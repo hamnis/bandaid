@@ -1,0 +1,9 @@
+{
+  "people":[{
+    "name":"Erlend Hamnaberg",
+    "age":32,
+    "links":{
+      "github":"http://github.com/hamnis"
+    }
+  }]
+}

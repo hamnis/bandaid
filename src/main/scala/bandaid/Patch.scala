@@ -69,7 +69,7 @@ object Patch {
         case "test" => Test(path, value.getOrElse(sys.error("Not a valid Test op")))
         case "add" => Add(path, value.getOrElse(sys.error("Not a valid Add op")))
         case "remove" => Remove(path)
-        case "replace" => Replace(path, value.getOrElse(sys.error("Not a valid Add op")))
+        case "replace" => Replace(path, value.getOrElse(sys.error("Not a valid Replace op")))
         case "move" => Move(path, from.getOrElse(sys.error("Not a valid Move op")))
         case "copy" => Copy(path, from.getOrElse(sys.error("Not a valid Copy op")))
       }

@@ -61,9 +61,9 @@ case class Pointer(document: JValue) {
           case other => other
         }
         case ArrayRef(i) :: xs => in match {
-          case a@JArray(arr) => if (xs == Nil) {
-            if (arr.isDefinedAt(i)) JArray(arr.updated(i, replacement).filterNot(_ == JNothing)) else sys.error("List index '%s' is out-of-bounds".format(i))
-          } else recur(xs, a)
+          case JArray(arr) => {
+            if (arr.isDefinedAt(i)) JArray(arr.updated(i, if (xs == Nil) replacement else recur(xs, arr(i))).filterNot(_ == JNothing)) else sys.error("List index '%s' is out-of-bounds".format(i))
+          }
           case other => other
         }
         case EndOfArray :: xs => sys.error("List index is out-of-bounds")
