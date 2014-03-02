@@ -19,12 +19,16 @@ package bandaid
 import scala.annotation.tailrec
 
 trait Selector[A] {
-  def apply(value: A): List[Ref]
+  def apply(value: A): Path
 }
 
 object Selector {
+  implicit object IdentitySelector extends Selector[Path] {
+    def apply(value: Path) = value
+  }
+
   implicit object StringSelector extends Selector[String] {
-    def apply(value: String): List[Ref] = {
+    def apply(value: String): Path = {
       import Ref._
       if (value.trim.isEmpty) Nil
       else {

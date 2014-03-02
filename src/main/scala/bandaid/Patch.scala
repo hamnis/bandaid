@@ -18,6 +18,7 @@ package bandaid
 
 import org.json4s.JsonAST.{JNothing, JValue}
 import scala.annotation.tailrec
+import bandaid.Selector._
 
 
 case class Patch(ops: List[Op]) {
@@ -66,32 +67,32 @@ object Patch {
       from = p.select("/from").map(_.values.toString)
     } yield {
       op match {
-        case "test" => Test(path, value.getOrElse(sys.error("Not a valid Test op")))
-        case "add" => Add(path, value.getOrElse(sys.error("Not a valid Add op")))
-        case "remove" => Remove(path)
-        case "replace" => Replace(path, value.getOrElse(sys.error("Not a valid Replace op")))
-        case "move" => Move(path, from.getOrElse(sys.error("Not a valid Move op")))
-        case "copy" => Copy(path, from.getOrElse(sys.error("Not a valid Copy op")))
+        case "test" => Test(StringSelector(path), value.getOrElse(sys.error("Not a valid Test op")))
+        case "add" => Add(StringSelector(path), value.getOrElse(sys.error("Not a valid Add op")))
+        case "remove" => Remove(StringSelector(path))
+        case "replace" => Replace(StringSelector(path), value.getOrElse(sys.error("Not a valid Replace op")))
+        case "move" => Move(StringSelector(path), from.map(StringSelector(_)).getOrElse(sys.error("Not a valid Move op")))
+        case "copy" => Copy(StringSelector(path), from.map(StringSelector(_)).getOrElse(sys.error("Not a valid Copy op")))
       }
     }
   }
 }
 
 sealed trait Op {
-  def path: String
+  def path: Path
 }
 
 object Op {
-  case class Test(path: String, value: JValue) extends Op
+  case class Test(path: Path, value: JValue) extends Op
 
-  case class Add(path: String, value: JValue) extends Op
+  case class Add(path: Path, value: JValue) extends Op
 
-  case class Remove(path: String) extends Op
+  case class Remove(path: Path) extends Op
 
-  case class Replace(path: String, value: JValue) extends Op
+  case class Replace(path: Path, value: JValue) extends Op
 
-  case class Move(path: String, from: String) extends Op
+  case class Move(path: Path, from: Path) extends Op
 
-  case class Copy(path: String, from: String) extends Op
+  case class Copy(path: Path, from: Path) extends Op
 }
 

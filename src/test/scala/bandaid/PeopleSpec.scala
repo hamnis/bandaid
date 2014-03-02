@@ -19,6 +19,8 @@ package bandaid
 import org.json4s._
 import org.json4s.native
 import org.specs2.mutable.Specification
+import Selector._
+import Ref._
 
 class PeopleSpec extends Specification {
   implicit object parser extends native.JsonMethods
@@ -26,13 +28,18 @@ class PeopleSpec extends Specification {
   "Example" should {
     "patch array item" in {
       val json = parser.parse(getClass.getResourceAsStream("/people.json"))
-      val patch = Patch(List(Op.Replace("/people/0/age", JInt(33))))
-      Pointer(patch(json)).select("/people/0/age") should beSome(JInt(33))
+      val path = StringSelector("/people/0/age")
+      val path2: Path = PropertyRef("people") :: ArrayRef(0) :: PropertyRef("age") :: Nil
+      val patch = Patch(List(Op.Replace(path, JInt(33))))
+      Pointer(patch(json)).select(path) should beSome(JInt(33))
+
+      val patch2 = Patch(List(Op.Replace(path2, JInt(33))))
+      Pointer(patch2(json)).select(path2) should beSome(JInt(33))
     }
 
     "patch object somewhere in array item" in {
       val json = parser.parse(getClass.getResourceAsStream("/people.json"))
-      val patch = Patch(List(Op.Add("/people/0/links/something", JString("http://example.com"))))
+      val patch = Patch(List(Op.Add(StringSelector("/people/0/links/something"), JString("http://example.com"))))
       Pointer(patch(json)).select("/people/0/links/something") should beSome(JString("http://example.com"))
     }
   }
