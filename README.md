@@ -9,13 +9,13 @@ Scala implementation of JSON Patch and JSON Pointer
 ```Scala
 import bandaid._
 
-val object = ... //some json structure
+val json = ... //some json structure
 
 val is = ... //get inputstream from somewhere...
 
 val patch = Patch.parse(is)
 
-val patched = patch(object)
+val patched = patch(json)
 
 ```
 
