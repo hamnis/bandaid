@@ -16,3 +16,5 @@ private
 profiles.xml
 target
 .DS_Store
+.metals
+.bloop
